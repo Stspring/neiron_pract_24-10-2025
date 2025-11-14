@@ -1,45 +1,47 @@
 from keras.datasets import mnist
 from keras import models, layers
 from keras.utils import to_categorical
-
-def build_and_train_model():
-    # Загрузка данных
-    (x_train, y_train), (x_test, y_test) = mnist.load_data()
-    
-    # Предобработка данных
-    x_train = x_train.reshape((60000, 28 * 28)).astype("float32") / 255
-    x_test = x_test.reshape((10000, 28 * 28)).astype("float32") / 255
-    
-    # Кодирование меток
-    y_train = to_categorical(y_train)
-    y_test = to_categorical(y_test)
-    
-    # Создание модели
-    model = models.Sequential([
-        layers.Dense(512, activation='relu', input_shape=(28 * 28,)),
-        layers.Dropout(0.3),
-        layers.Dense(10, activation='softmax')
-    ])
-    
-    # Компиляция
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    
-    # Обучение
-    history = model.fit(x_train, y_train, epochs=5, batch_size=128, validation_split=0.1)
-    
-    return model, history, (x_test, y_test)
-
 import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
 
-def predict_digit_from_file(model, filename):
-    """
-    Загружает изображение файла и предсказывает цифру.
+def train_visual():
+
+    (x_train, y_train), (x_test, y_test) = mnist.load_data()    # Загрузка данных
     
-    :param model: обученная модель keras
-    :param filename: путь к изображению (например, 'digit.png')
-    """
+    x_train = x_train.reshape((60000, 28 * 28)).astype("float32") / 255 # Предобработка данных
+    x_test = x_test.reshape((10000, 28 * 28)).astype("float32") / 255
+    
+    y_train = to_categorical(y_train)   # Кодирование меток
+    y_test = to_categorical(y_test)
+    
+    model = models.Sequential([
+        layers.Dense(512, activation='relu', input_shape=(28 * 28,)),   # Создание модели
+        layers.Dropout(0.3),
+        layers.Dense(10, activation='softmax')
+    ])
+    
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])    # Компиляция
+    
+    history = model.fit(x_train, y_train, epochs=5, batch_size=128, validation_split=0.1)    # Обучение
+
+    # График потерь
+    plt.plot(history.history['loss'], label='train_loss')
+    plt.plot(history.history['val_loss'], label='val_loss')
+    plt.legend()
+    plt.title('Loss during training')
+    plt.show()
+
+    # График точности
+    plt.plot(history.history['accuracy'], label='train_accuracy')
+    plt.plot(history.history['val_accuracy'], label='val_accuracy')
+    plt.legend()
+    plt.title('Accuracy during training')
+    plt.show()
+    
+    return model, history, (x_test, y_test)
+
+def predict_digit_from_file(model, filename):
     # Загружаем изображение
     img = Image.open(filename).convert('L')  # преобразуем в grayscale
     
